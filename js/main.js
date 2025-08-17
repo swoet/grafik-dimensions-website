@@ -105,7 +105,7 @@ if (form) {
       // Submit to our form handler function
       const response = await fetch('/.netlify/functions/form-handler', {
         method: 'POST',
-        body: formData
+        body: new URLSearchParams(formData)
       });
       
       if (response.ok) {
