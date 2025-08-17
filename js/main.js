@@ -29,11 +29,18 @@ if (filterBtns.length && portfolioItems.length) {
   });
 }
 
-// Form validation and Netlify function submission
+// Form validation and Netlify form submission
 const form = document.querySelector('.contact-form');
 if (form) {
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
+    
+    // Show loading state
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = 'Sending...';
+    submitBtn.disabled = true;
+    
     let valid = true;
     form.querySelectorAll('[required]').forEach(input => {
       if (!input.value.trim()) {
@@ -43,49 +50,63 @@ if (form) {
         input.removeAttribute('aria-invalid');
       }
     });
-    if (!valid) return false;
-
-    // Get form data as JSON (simpler than FormData for Netlify Functions)
-    const formData = {};
-    const formElements = form.elements;
     
-    for (let i = 0; i < formElements.length; i++) {
-      const element = formElements[i];
-      if (element.name && element.type !== 'file') {
-        formData[element.name] = element.value;
-      }
-    }
-
-    // Handle file attachments separately
-    const fileInput = form.querySelector('#attachments');
-    if (fileInput && fileInput.files.length > 0) {
-      formData.hasAttachments = true;
-      formData.attachmentCount = fileInput.files.length;
-      formData.attachmentNames = Array.from(fileInput.files).map(file => file.name);
+    if (!valid) {
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
+      return false;
     }
 
     try {
-      const response = await fetch('/.netlify/functions/email-form', {
+      // Use Netlify's built-in form handling
+      const formData = new FormData(form);
+      
+      // Submit to our form handler function
+      const response = await fetch('/.netlify/functions/form-handler', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
+        body: formData
       });
       
       if (response.ok) {
+        // Show success message
         form.style.display = 'none';
         const success = form.querySelector('.form-success') || document.createElement('div');
         success.className = 'form-success';
-        success.textContent = 'Thanks. We\'ll get back to you soon.';
+        success.textContent = 'Thanks! We\'ll get back to you soon.';
+        success.style.display = 'block';
         form.parentNode.appendChild(success);
+        
+        // Reset form
+        form.reset();
       } else {
-        const error = await response.json();
-        alert('Failed to send. ' + (error.error || 'Please try again later.'));
+        throw new Error('Form submission failed');
       }
     } catch (err) {
       console.error('Form submission error:', err);
-      alert('Failed to send. Please try again later.');
+      
+      // Show error message
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'form-error';
+      errorDiv.textContent = 'Failed to send. Please try again later.';
+      errorDiv.style.color = '#dc2626';
+      errorDiv.style.backgroundColor = '#fef2f2';
+      errorDiv.style.padding = 'var(--spacing-3)';
+      errorDiv.style.borderRadius = 'var(--radius)';
+      errorDiv.style.marginTop = 'var(--spacing-3)';
+      errorDiv.style.textAlign = 'center';
+      
+      form.appendChild(errorDiv);
+      
+      // Remove error message after 5 seconds
+      setTimeout(() => {
+        if (errorDiv.parentNode) {
+          errorDiv.remove();
+        }
+      }, 5000);
+    } finally {
+      // Reset button state
+      submitBtn.textContent = originalText;
+      submitBtn.disabled = false;
     }
   });
 }

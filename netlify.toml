@@ -1,2 +1,12 @@
 [build]
   functions = "netlify/functions"
+
+[[redirects]]
+  from = "/contact"
+  to = "/contact/"
+  status = 301
+
+[[redirects]]
+  from = "/contact/"
+  to = "/contact/index.html"
+  status = 200

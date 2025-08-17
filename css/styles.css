@@ -899,3 +899,30 @@ main#main, main {
   }
 }
 
+.form-help {
+  display: block;
+  margin-top: var(--spacing-1);
+  font-size: 0.85rem;
+  color: var(--color-accent);
+  font-style: italic;
+}
+
+input[type="file"] {
+  padding: var(--spacing-2);
+  border: 2px dashed var(--color-accent);
+  background: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+input[type="file"]:hover {
+  border-color: var(--color-primary);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+input[type="file"]:focus {
+  border-color: var(--color-primary);
+  outline: 2px solid var(--color-accent);
+  background: var(--color-white);
+}
+
