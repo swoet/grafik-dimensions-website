@@ -9,98 +9,28 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    // Parse the form data from the event body
+    // Parse JSON data from the request body
     let formData;
-    let attachments = [];
     
     if (event.isBase64Encoded) {
       // Handle base64 encoded data
       const buffer = Buffer.from(event.body, 'base64');
-      formData = buffer.toString();
+      formData = JSON.parse(buffer.toString());
     } else {
-      formData = event.body;
-    }
-
-    // Parse form data manually since multiparty doesn't work in Netlify Functions
-    const boundary = event.headers['content-type']?.split('boundary=')[1];
-    if (!boundary) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Invalid content type' }),
-      };
-    }
-
-    // Parse multipart form data manually
-    const parts = formData.split('--' + boundary);
-    const fields = {};
-    const files = {};
-
-    for (const part of parts) {
-      if (part.includes('Content-Disposition: form-data')) {
-        const lines = part.split('\r\n');
-        let name = '';
-        let value = '';
-        let filename = '';
-        let contentType = '';
-        let isFile = false;
-
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i];
-          if (line.startsWith('Content-Disposition: form-data')) {
-            const nameMatch = line.match(/name="([^"]+)"/);
-            const filenameMatch = line.match(/filename="([^"]+)"/);
-            
-            if (nameMatch) name = nameMatch[1];
-            if (filenameMatch) {
-              filename = filenameMatch[1];
-              isFile = true;
-            }
-          } else if (line.startsWith('Content-Type:')) {
-            contentType = line.split(': ')[1];
-          } else if (line === '' && i < lines.length - 1) {
-            // This is the start of the content
-            value = lines.slice(i + 1).join('\r\n').trim();
-            break;
-          }
-        }
-
-        if (name) {
-          if (isFile && filename) {
-            if (!files[name]) files[name] = [];
-            files[name].push({
-              filename: filename,
-              content: value,
-              contentType: contentType
-            });
-          } else {
-            if (!fields[name]) fields[name] = [];
-            fields[name].push(value);
-          }
-        }
-      }
+      formData = JSON.parse(event.body);
     }
 
     // Extract form fields
-    const name = fields.name ? fields.name[0] : '';
-    const email = fields.email ? fields.email[0] : '';
-    const phone = fields.phone ? fields.phone[0] : '';
-    const service = fields.service ? fields.service[0] : '';
-    const details = fields.details ? fields.details[0] : '';
-
-    // Handle file attachments
-    if (files.attachments) {
-      attachments = files.attachments.map(file => ({
-        filename: file.filename,
-        content: file.content,
-        contentType: file.contentType,
-      }));
-    }
+    const { name, email, phone, service, details, hasAttachments, attachmentCount, attachmentNames } = formData;
 
     // Validate required fields
     if (!name || !email || !service) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ error: 'Missing required fields: name, email, service' }),
+        body: JSON.stringify({ 
+          error: 'Missing required fields', 
+          missing: ['name', 'email', 'service'].filter(field => !formData[field])
+        }),
       };
     }
 
@@ -115,12 +45,27 @@ exports.handler = async function(event, context) {
       },
     });
 
+    // Create email content
+    let emailText = `Name: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\nService: ${service}\nDetails: ${details}`;
+    
+    if (hasAttachments) {
+      emailText += `\n\nAttachments: ${attachmentCount} file(s)\nFile names: ${attachmentNames.join(', ')}`;
+    }
+
     const mailOptions = {
       from: process.env.SMTP_FROM || 'no-reply@grafikdimensions.co.zw',
       to: 'munyangadzishawn@gmail.com',
       subject: `New Quote Request from ${name}`,
-      text: `Name: ${name}\nEmail: ${email}\nPhone: ${phone}\nService: ${service}\nDetails: ${details}`,
-      attachments,
+      text: emailText,
+      html: `
+        <h2>New Quote Request</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Phone:</strong> ${phone || 'Not provided'}</p>
+        <p><strong>Service:</strong> ${service}</p>
+        <p><strong>Details:</strong> ${details}</p>
+        ${hasAttachments ? `<p><strong>Attachments:</strong> ${attachmentCount} file(s)<br>Files: ${attachmentNames.join(', ')}</p>` : ''}
+      `
     };
 
     // Send email
@@ -128,11 +73,31 @@ exports.handler = async function(event, context) {
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Email sent successfully' }),
+      body: JSON.stringify({ 
+        message: 'Email sent successfully',
+        details: {
+          name,
+          email,
+          service,
+          hasAttachments: hasAttachments || false
+        }
+      }),
     };
 
   } catch (error) {
     console.error('Email function error:', error);
+    
+    // Handle JSON parsing errors specifically
+    if (error instanceof SyntaxError) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ 
+          error: 'Invalid JSON data received',
+          details: 'The form data could not be parsed correctly'
+        }),
+      };
+    }
+    
     return {
       statusCode: 500,
       body: JSON.stringify({ 

@@ -45,24 +45,46 @@ if (form) {
     });
     if (!valid) return false;
 
-    // Prepare form data for file upload
-    const formData = new FormData(form);
+    // Get form data as JSON (simpler than FormData for Netlify Functions)
+    const formData = {};
+    const formElements = form.elements;
+    
+    for (let i = 0; i < formElements.length; i++) {
+      const element = formElements[i];
+      if (element.name && element.type !== 'file') {
+        formData[element.name] = element.value;
+      }
+    }
+
+    // Handle file attachments separately
+    const fileInput = form.querySelector('#attachments');
+    if (fileInput && fileInput.files.length > 0) {
+      formData.hasAttachments = true;
+      formData.attachmentCount = fileInput.files.length;
+      formData.attachmentNames = Array.from(fileInput.files).map(file => file.name);
+    }
+
     try {
       const response = await fetch('/.netlify/functions/email-form', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
       });
+      
       if (response.ok) {
         form.style.display = 'none';
         const success = form.querySelector('.form-success') || document.createElement('div');
         success.className = 'form-success';
-        success.textContent = 'Thanks. We’ll get back to you soon.';
+        success.textContent = 'Thanks. We\'ll get back to you soon.';
         form.parentNode.appendChild(success);
       } else {
         const error = await response.json();
         alert('Failed to send. ' + (error.error || 'Please try again later.'));
       }
     } catch (err) {
+      console.error('Form submission error:', err);
       alert('Failed to send. Please try again later.');
     }
   });
