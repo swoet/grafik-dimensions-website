@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terms and Conditions | Grafik Dimensions and Sons</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <main id="main">
+    <section class="legal-section">
+      <h1>Terms and Conditions</h1>
+      <p>Welcome to Grafik Dimensions and Sons. By using our website and services, you agree to the following terms and conditions:</p>
+      <h2>Services</h2>
+      <p>We provide digital printing, graphic design, large format printing, and related services. All orders are subject to acceptance and availability.</p>
+      <h2>Orders and Payment</h2>
+      <ul>
+        <li>Quotes are valid for 14 days unless otherwise stated.</li>
+        <li>Full payment may be required before production begins.</li>
+        <li>We accept payment via bank transfer, cash, or other agreed methods.</li>
+      </ul>
+      <h2>Designs and Proofs</h2>
+      <ul>
+        <li>Clients are responsible for approving all proofs before printing.</li>
+        <li>We are not liable for errors in approved proofs.</li>
+      </ul>
+      <h2>Delivery</h2>
+      <ul>
+        <li>Delivery times are estimates and not guaranteed.</li>
+        <li>We are not responsible for delays outside our control.</li>
+      </ul>
+      <h2>Intellectual Property</h2>
+      <p>All designs, artwork, and content remain the property of Grafik Dimensions and Sons unless otherwise agreed in writing.</p>
+      <h2>Limitation of Liability</h2>
+      <p>We are not liable for any indirect, incidental, or consequential damages arising from the use of our services.</p>
+      <h2>Governing Law</h2>
+      <p>These terms are governed by the laws of Zimbabwe.</p>
+      <h2>Contact Us</h2>
+      <p>If you have questions about these terms, please contact us at <a href="mailto:munyangadzishawn@gmail.com">munyangadzishawn@gmail.com</a>.</p>
+    </section>
+  </main>
+</body>
+</html>

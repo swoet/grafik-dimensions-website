@@ -1,0 +1,17 @@
+{
+  "name": "Grafik Dimensions and Sons",
+  "short_name": "Grafik Dimensions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F1F5F9",
+  "theme_color": "#0F172A",
+  "icons": [
+    {
+      "src": "assets/images/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    }
+  ]
+}
+
+
