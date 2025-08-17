@@ -1,6 +1,8 @@
 // Mobile nav toggle
 const navToggle = document.querySelector('.nav-toggle');
+const mobileNavToggle = document.querySelector('#mobile-nav-toggle');
 const navList = document.querySelector('.nav-list');
+
 if (navToggle && navList) {
   navToggle.addEventListener('click', () => {
     const expanded = navToggle.getAttribute('aria-expanded') === 'true';
@@ -8,6 +10,45 @@ if (navToggle && navList) {
     navList.classList.toggle('open');
   });
 }
+
+// Mobile logo navigation toggle
+if (mobileNavToggle && navList) {
+  mobileNavToggle.addEventListener('click', (e) => {
+    // Only toggle on mobile devices
+    if (window.innerWidth <= 768) {
+      e.preventDefault(); // Prevent navigation to home page
+      navList.classList.toggle('open');
+      
+      // Update hamburger button state if it exists
+      if (navToggle) {
+        const expanded = navList.classList.contains('open');
+        navToggle.setAttribute('aria-expanded', expanded);
+      }
+    }
+  });
+}
+
+// Close mobile menu when clicking outside
+document.addEventListener('click', (e) => {
+  if (navList && navList.classList.contains('open')) {
+    if (!e.target.closest('.navbar') && !e.target.closest('#mobile-nav-toggle')) {
+      navList.classList.remove('open');
+      if (navToggle) {
+        navToggle.setAttribute('aria-expanded', 'false');
+      }
+    }
+  }
+});
+
+// Close mobile menu on window resize
+window.addEventListener('resize', () => {
+  if (window.innerWidth > 768 && navList) {
+    navList.classList.remove('open');
+    if (navToggle) {
+      navToggle.setAttribute('aria-expanded', 'false');
+    }
+  }
+});
 
 // Portfolio filter
 const filterBtns = document.querySelectorAll('.filter-btn');
